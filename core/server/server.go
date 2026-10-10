@@ -10,9 +10,11 @@ func New(port string,
 	helpHandler http.Handler,
 	listHandler http.Handler,
 	DeleteHandler http.Handler,
+	DoneHandler http.Handler,
 ) *http.Server {
 	mux := http.NewServeMux()
 
+	mux.Handle("PATCH /tasks/{id}", DoneHandler)
 	mux.Handle("DELETE /tasks/{id}", DeleteHandler)
 	mux.Handle("GET /tasks", listHandler)
 	mux.Handle("POST /tasks", addHandler)

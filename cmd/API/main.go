@@ -6,6 +6,7 @@ import (
 
 	"main.go/Features/Add"
 	"main.go/Features/del"
+	"main.go/Features/done"
 	"main.go/Features/help"
 	"main.go/Features/list"
 	"main.go/core/config"
@@ -42,10 +43,16 @@ func main() {
 	//создаем все необходимое для del хендлера
 	delRepository := del.NewRepository(db)
 	delService := del.NewService(delRepository)
-	delDelHandler := del.NewHandler(delService)
+	DelHandler := del.NewHandler(delService)
+
+	//создаем все необходимое для Done хендлера
+	donerepository := done.NewRepository(db)
+	doneService := done.NewService(donerepository)
+	doneHandler := done.NewHandler(doneService)
 
 	//подключаем http хендлеры к маршрутам
-	httpDelHandler := http.HandlerFunc(delDelHandler.DeleteHandler)
+	httpDoneHandler := http.HandlerFunc(doneHandler.DoneHandler)
+	httpDelHandler := http.HandlerFunc(DelHandler.DeleteHandler)
 	httpListHandler := http.HandlerFunc(listHandler.ListHandler)
 	httpAddHandler := http.HandlerFunc(addhandler.AddHandler)
 	httpHelpHandler := http.HandlerFunc((help.HelpHandler))
@@ -57,6 +64,7 @@ func main() {
 		httpHelpHandler,
 		httpListHandler,
 		httpDelHandler,
+		httpDoneHandler,
 	)
 
 	//запускаем сервер
