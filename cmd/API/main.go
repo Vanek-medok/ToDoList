@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"main.go/Features/Add"
 	"main.go/Features/del"
@@ -67,10 +73,55 @@ func main() {
 		httpDoneHandler,
 	)
 
-	//запускаем сервер
+	// //запускаем сервер
+	// log.Printf("сервер запускается на порту: %s", cfg.Port)
+
+	// if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	// 	log.Fatalf("Ошибка при запуске сервера: %s", err)
+	// }
+
 	log.Printf("сервер запускается на порту: %s", cfg.Port)
 
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Ошибка при запуске сервера: %s", err)
+	if err = runServer(srv); err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func runServer(srv *http.Server) error {
+	serverErr := make(chan error, 1)
+
+	go func() {
+		serverErr <- srv.ListenAndServe()
+	}()
+
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stop()
+
+	select {
+	case err := <-serverErr:
+		if errors.Is(err, http.ErrServerClosed) {
+			return nil
+		}
+		return err
+	case <-ctx.Done():
+		log.Println("Получен сигнал завершения сервера")
+
+		shutdownCtx, cancel := context.WithTimeout(
+			context.Background(),
+			10*time.Second,
+		)
+		defer cancel()
+
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			return err
+		}
+
+		log.Println("Сервер корректно завершен")
+		return nil
 	}
 }
