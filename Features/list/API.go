@@ -23,15 +23,9 @@ func (h *ListHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := make([]TaskDTO, 0, len(tasks))
-
-	for _, task := range tasks {
-		response = append(response, ToTaskDTO(&task))
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	if err := json.NewEncoder(w).Encode(tasks); err != nil {
 		return
 	}
 }

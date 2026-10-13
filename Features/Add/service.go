@@ -3,7 +3,7 @@ package Add
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log/slog"
 )
 
 type Service struct {
@@ -19,6 +19,7 @@ func NewService(repository *Repository) *Service {
 func (s Service) CreateTaskModel(ctx context.Context, dto *TaskDTO) (*TaskModel, error) {
 
 	if dto.Title == "" {
+		slog.ErrorContext(ctx, "Пустой заголовок", "error", errors.New("Пустой заголовок"))
 		return nil, errors.New("пустой заголовок")
 	}
 
@@ -29,7 +30,8 @@ func (s Service) CreateTaskModel(ctx context.Context, dto *TaskDTO) (*TaskModel,
 
 	task, err := s.repository.CreateTask(ctx, &taskModel)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при создании задачи:%w", err)
+		slog.ErrorContext(ctx, "Не удалось создать задачу:", "error", err)
+		return nil, err
 	}
 
 	return task, nil

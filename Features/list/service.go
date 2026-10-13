@@ -1,6 +1,9 @@
 package list
 
-import "context"
+import (
+	"context"
+	"log/slog"
+)
 
 type Service struct {
 	repository *Repository
@@ -14,6 +17,15 @@ func NewService(repsitory *Repository) *Service {
 
 func (s *Service) TasksList(
 	ctx context.Context,
-) ([]TaskModel, error) {
-	return s.repository.TasksList(ctx)
+) ([]TaskDTO, error) {
+	var tasksDTO []TaskDTO
+
+	tasksModel, err := s.repository.TasksList(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "Ошибка при получении списка задач", "error", err)
+	}
+	for _, task := range tasksModel {
+		tasksDTO = append(tasksDTO, ToTaskDTO(&task))
+	}
+	return tasksDTO, nil
 }

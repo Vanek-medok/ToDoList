@@ -3,6 +3,7 @@ package del
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"main.go/core/apperrors"
@@ -23,6 +24,7 @@ func (r *Repository) DeleteTask(ctx context.Context, id int) error {
 		`DELETE FROM tasks WHERE id = $1`,
 		id)
 	if err != nil {
+		slog.ErrorContext(ctx, "не удалось удалить задачу:", "errors", err)
 		return fmt.Errorf("Не удалось удалить задачу: %w", err)
 	}
 
