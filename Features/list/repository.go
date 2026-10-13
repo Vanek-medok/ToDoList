@@ -3,6 +3,7 @@ package list
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -33,6 +34,7 @@ func (r *Repository) TasksList(ctx context.Context) ([]TaskModel, error) {
 
 	rows, err := r.db.Query(ctx, sqlQuery)
 	if err != nil {
+		slog.ErrorContext(ctx, "Ошибка получения задач", "error", err)
 		return nil, fmt.Errorf("Ошибка получения задач: %w", err)
 	}
 
@@ -51,6 +53,7 @@ func (r *Repository) TasksList(ctx context.Context) ([]TaskModel, error) {
 			&task.Completed_at,
 		)
 		if err != nil {
+			slog.ErrorContext(ctx, "Ошибка чтения задачи:", "error", err)
 			return nil, fmt.Errorf("Ошибка чтения задачи: %w", err)
 		}
 
@@ -58,6 +61,7 @@ func (r *Repository) TasksList(ctx context.Context) ([]TaskModel, error) {
 	}
 
 	if err := rows.Err(); err != nil {
+		slog.ErrorContext(ctx, "ошибка обхода результатов", "error", err)
 		return nil, fmt.Errorf("Ошибка обхода результатов: %w", err)
 	}
 

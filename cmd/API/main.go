@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,20 +18,33 @@ import (
 	"main.go/Features/list"
 	"main.go/core/config"
 	"main.go/core/database"
+	"main.go/core/logger"
 	"main.go/core/server"
 )
 
 func main() {
 
+	logFile, err := logger.Init()
+	if err != nil {
+		log.Fatalf("Не удалось создать лог файл: %v", err)
+	}
+	defer logFile.Close()
+
+	slog.Info("Запуск приложения")
+
 	//создаем конфиг
 	cfg := config.Load()
 
+	slog.Info("Покдлючение к базе данных")
 	db, err := database.New(cfg.DatabaseURL)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Не удалось подключится к базе данных:", "error", err)
+		os.Exit(1)
 	}
 
 	defer db.Close()
+
+	slog.Info("Подключение к БД успешно")
 
 	//создаем репозиторий
 	repository := Add.NewRepository(db)
@@ -80,10 +94,11 @@ func main() {
 	// 	log.Fatalf("Ошибка при запуске сервера: %s", err)
 	// }
 
-	log.Printf("сервер запускается на порту: %s", cfg.Port)
+	slog.Info("Запуск HTTP сервера", "addr", srv.Addr)
 
 	if err = runServer(srv); err != nil {
-		log.Fatal(err)
+		slog.Error("Ошибка HTTP сервера", "error", err)
+		os.Exit(1)
 	}
 
 }

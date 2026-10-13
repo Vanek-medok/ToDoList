@@ -3,6 +3,8 @@ package server
 import (
 	"net/http"
 	"strings"
+
+	"main.go/core/midlleware"
 )
 
 func New(port string,
@@ -28,6 +30,6 @@ func New(port string,
 
 	return &http.Server{
 		Addr:    ":" + port,
-		Handler: mux,
+		Handler: midlleware.Logging(mux),
 	}
 }

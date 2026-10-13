@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -45,6 +46,7 @@ func (r *Repository) DoneTask(ctx context.Context, id int) (*TaskModel, error) {
 	}
 
 	if err != nil {
+		slog.ErrorContext(ctx, "не удалось выполнить задачу:", "error", err)
 		return nil, fmt.Errorf("Не удалось выполнить задачу: %w", err)
 	}
 
