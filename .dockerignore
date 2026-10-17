@@ -1,0 +1,7 @@
+.git
+.env
+.env.*
+cmd/env/
+logs/
+bin/
+*.exe
