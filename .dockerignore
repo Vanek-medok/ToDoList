@@ -1,7 +1,21 @@
-.git
+
+# Secrets and environment files
 .env
 .env.*
+!.env.example
 cmd/env/
+
+# Logs
 logs/
+*.log
+.log*
+
+# Build artifacts
 bin/
 *.exe
+/todolist
+/app
+
+# Git and IDE
+.git/
+.vscode/

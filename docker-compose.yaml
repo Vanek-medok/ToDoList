@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./cmd/env/.env
+      - .env
     volumes:
       - ./logs:/app/logs
     restart: unless-stopped

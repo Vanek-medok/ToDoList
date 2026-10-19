@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"main.go/Features/Add"
 	"main.go/Features/del"
 	"main.go/Features/done"
@@ -96,18 +97,23 @@ func main() {
 
 	slog.Info("Запуск HTTP сервера", "addr", srv.Addr)
 
-	if err = runServer(srv); err != nil {
+	if err = runServer(srv, db); err != nil {
 		slog.Error("Ошибка HTTP сервера", "error", err)
 		os.Exit(1)
 	}
 
 }
 
-func runServer(srv *http.Server) error {
+func runServer(srv *http.Server, db *pgxpool.Pool) error {
 	serverErr := make(chan error, 1)
 
 	go func() {
-		serverErr <- srv.ListenAndServe()
+		err := srv.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serverErr <- err
+			return
+		}
+		serverErr <- nil
 	}()
 
 	ctx, stop := signal.NotifyContext(
@@ -119,12 +125,10 @@ func runServer(srv *http.Server) error {
 
 	select {
 	case err := <-serverErr:
-		if errors.Is(err, http.ErrServerClosed) {
-			return nil
-		}
 		return err
+
 	case <-ctx.Done():
-		log.Println("Получен сигнал завершения сервера")
+		slog.Info("Получен сигнал завершения сервера")
 
 		shutdownCtx, cancel := context.WithTimeout(
 			context.Background(),
@@ -133,10 +137,13 @@ func runServer(srv *http.Server) error {
 		defer cancel()
 
 		if err := srv.Shutdown(shutdownCtx); err != nil {
+			slog.Error("Не удалось корректно завершить сервер", "error", err)
+			_ = srv.Close()
 			return err
 		}
 
-		log.Println("Сервер корректно завершен")
+		db.Close()
+		slog.Info("Сервер и соединение с БД завершены")
 		return nil
 	}
 }

@@ -1,7 +1,20 @@
-env.
+
+# Environment variables and secrets
+.env
 .env.*
+!.env.example
+cmd/env/.env
+
+# Logs
 logs/
+*.log
 .log*
+
+# Build artifacts
 bin/
 *.exe
+/todolist
+/app
+
+# IDE
 .vscode/
